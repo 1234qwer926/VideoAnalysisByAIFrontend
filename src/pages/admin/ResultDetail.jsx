@@ -18,14 +18,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 
 function getStatusVariant(status) {
   const n = (status || "").toLowerCase()
@@ -38,7 +30,7 @@ function prettyMetric(label) {
   return label.replace(/_/g, " ")
 }
 
-function MetricBar({ label, value }) {
+function MetricBar({ label, value, hideLabel = false }) {
   const numeric = Number(value)
   const hasValue = Number.isFinite(numeric)
   const pct = hasValue ? Math.min(100, Math.max(0, (numeric / 10) * 100)) : 0
@@ -47,10 +39,12 @@ function MetricBar({ label, value }) {
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center justify-between text-xs">
-        <span className="capitalize text-muted-foreground">
-          {prettyMetric(label)}
-        </span>
+      <div className={`flex items-center text-xs ${hideLabel ? "justify-end" : "justify-between"}`}>
+        {!hideLabel && (
+          <span className="capitalize text-muted-foreground">
+            {prettyMetric(label)}
+          </span>
+        )}
         <span className="font-semibold tabular-nums">
           {hasValue ? `${numeric}/10` : "-"}
         </span>
@@ -272,25 +266,51 @@ export default function ResultDetail() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-[#E5E7EB] bg-white p-6">
-        <div className="mb-3">
-          <Button asChild variant="ghost" className="px-0">
-            <Link to="/admin/results">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Results
-            </Link>
-          </Button>
-        </div>
-
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Result Detail
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Table view of responses, AI scoring, final scoring, and metric overrides.
-            </p>
+      {/* Page Header */}
+      <section
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "16px",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          background: "#fff",
+          border: "1px solid #e5e7eb",
+          borderRadius: "12px",
+          padding: "24px 28px",
+        }}
+      >
+        <div>
+          <div className="mb-4">
+            <Button asChild variant="ghost" className="px-0 h-auto text-muted-foreground hover:text-foreground">
+              <Link to="/admin/results">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Results
+              </Link>
+            </Button>
           </div>
+          <h1
+            style={{
+              fontSize: "22px",
+              fontWeight: 700,
+              color: "#111827",
+              margin: 0,
+              letterSpacing: "-0.3px",
+            }}
+          >
+            Result Detail
+          </h1>
+          <p
+            style={{
+              fontSize: "14px",
+              color: "#6b7280",
+              margin: "4px 0 0",
+            }}
+          >
+            Table view of responses, AI scoring, final scoring, and metric overrides.
+          </p>
+        </div>
+        <div style={{ alignSelf: "center" }}>
           <Badge variant={getStatusVariant(summary.status)}>{summary.status}</Badge>
         </div>
       </section>
@@ -386,154 +406,207 @@ export default function ResultDetail() {
             </Card>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Candidate Answers</CardTitle>
-              <CardDescription>
+          <div
+            style={{
+              background: "#fff",
+              border: "1px solid #e5e7eb",
+              borderRadius: "12px",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                padding: "20px 24px",
+                borderBottom: "1px solid #f3f4f6",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "#111827",
+                  margin: "0 0 4px",
+                }}
+              >
+                Candidate Answers
+              </h2>
+              <p style={{ fontSize: "14px", color: "#6b7280", margin: 0 }}>
                 Each row includes the submitted response, AI evaluation, and the final score override.
-              </CardDescription>
-            </CardHeader>
+              </p>
+            </div>
 
-            <CardContent>
+            <div style={{ padding: "0" }}>
               {allQuestionRows.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">#</TableHead>
-                      <TableHead className="min-w-[240px]">Question</TableHead>
-                      <TableHead className="min-w-[300px]">Response</TableHead>
-                      <TableHead className="min-w-[240px]">AI Evaluation</TableHead>
-                      <TableHead className="w-32">AI Score</TableHead>
-                      <TableHead className="w-32">Final Score</TableHead>
-                      <TableHead className="w-36">Admin Override</TableHead>
-                      <TableHead className="w-28">Artifact</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {allQuestionRows.map((answer) => (
-                      <TableRow key={answer.id}>
-                        <TableCell className="align-top font-semibold">
-                          {answer.rowNumber}
-                        </TableCell>
-                        <TableCell className="align-top whitespace-normal">
-                          <div className="space-y-1">
-                            <p className="font-medium">
-                              {answer.question_title || `Question ${answer.rowNumber}`}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {answer.question_type || "text"}
-                              {answer.question_points != null
-                                ? ` • ${answer.question_points} pts`
-                                : ""}
-                            </p>
-                            {answer.question_description ? (
-                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                                {answer.question_description}
+                <div style={{ overflowX: "auto" }}>
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <thead>
+                      <tr
+                        style={{
+                          borderBottom: "1px solid #e5e7eb",
+                          background: "#f9fafb",
+                        }}
+                      >
+                        <th style={thStyle}>#</th>
+                        <th style={{ ...thStyle, textAlign: "left", minWidth: "240px" }}>Question</th>
+                        <th style={{ ...thStyle, textAlign: "left", minWidth: "300px" }}>Response</th>
+                        <th style={{ ...thStyle, textAlign: "left", minWidth: "220px" }}>AI Metrics</th>
+                        <th style={{ ...thStyle, textAlign: "left", minWidth: "260px" }}>AI Feedback</th>
+                        <th style={{ ...thStyle, textAlign: "center" }}>AI Score</th>
+                        <th style={{ ...thStyle, textAlign: "center" }}>Final Score</th>
+                        <th style={{ ...thStyle, textAlign: "left", width: "140px" }}>Admin Override</th>
+                        <th style={{ ...thStyle, textAlign: "left", width: "110px" }}>Artifact</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allQuestionRows.map((answer) => (
+                        <tr
+                          key={answer.id}
+                          style={{
+                            borderBottom: "1px solid #f3f4f6",
+                            transition: "background 0.15s",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.background = "#f9fafb")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.background = "transparent")
+                          }
+                        >
+                          <td style={{ ...tdStyle, color: "#9ca3af", fontWeight: 500, textAlign: "center" }}>
+                            {answer.rowNumber}
+                          </td>
+                          <td style={tdStyle}>
+                            <div className="space-y-1">
+                              <p style={{ fontWeight: 600, color: "#111827", lineHeight: 1.3 }}>
+                                {answer.question_title || `Question ${answer.rowNumber}`}
                               </p>
-                            ) : null}
-                          </div>
-                        </TableCell>
-                        <TableCell className="align-top whitespace-normal">
-                          <div className="space-y-2">
-                            {answer.isVideo ? (
-                              <div className="rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground">
-                                Video response recorded.
-                              </div>
-                            ) : (
-                              <p className="whitespace-pre-wrap text-sm leading-6">
-                                {answer.answerText || "No answer submitted"}
-                              </p>
-                            )}
-                            {answer.video_url ? (
-                              <Button asChild variant="outline" size="sm">
-                                <a href={answer.video_url} target="_blank" rel="noopener noreferrer">
-                                  <ExternalLink className="mr-2 h-3 w-3" />
-                                  Open Response
-                                </a>
-                              </Button>
-                            ) : null}
-                          </div>
-                        </TableCell>
-                        <TableCell className="align-top whitespace-normal">
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Bot className="h-4 w-4 text-[#3B82F6]" />
-                              <span className="font-semibold">
-                                {formatScore(answer.ai_score)}
+                              <p style={{ fontSize: "12.5px", color: "#6b7280" }}>
+                                {answer.question_type || "text"}
                                 {answer.question_points != null
-                                  ? ` / ${answer.question_points}`
+                                  ? ` • ${answer.question_points} pts`
                                   : ""}
-                              </span>
+                              </p>
+                              {answer.question_description ? (
+                                <p style={{ fontSize: "13px", color: "#6b7280", whiteSpace: "pre-wrap", marginTop: "4px" }}>
+                                  {answer.question_description}
+                                </p>
+                              ) : null}
                             </div>
-                            {Object.keys(answer.aiMetrics || {}).length > 0 ? (
-                              <div className="space-y-2">
-                                {Object.entries(answer.aiMetrics).map(([key, value]) => (
-                                  <MetricBar key={key} label={key} value={value} />
-                                ))}
+                          </td>
+                          <td style={tdStyle}>
+                            <div className="space-y-2">
+                              {answer.isVideo ? (
+                                <div style={{ background: "#f3f4f6", padding: "12px", borderRadius: "8px", fontSize: "13px", color: "#6b7280" }}>
+                                  Video response recorded.
+                                </div>
+                              ) : (
+                                <p style={{ whiteSpace: "pre-wrap", fontSize: "14px", lineHeight: 1.6, color: "#374151" }}>
+                                  {answer.answerText || "No answer submitted"}
+                                </p>
+                              )}
+                              {answer.video_url ? (
+                                <Button asChild variant="outline" size="sm">
+                                  <a href={answer.video_url} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="mr-2 h-3 w-3" />
+                                    Open Response
+                                  </a>
+                                </Button>
+                              ) : null}
+                            </div>
+                          </td>
+                          <td style={tdStyle}>
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2 text-sm">
+                                <Bot className="h-4 w-4 text-[#3B82F6]" />
+                                <span className="font-semibold" style={{ color: "#111827" }}>
+                                  {formatScore(answer.ai_score)}
+                                  {answer.question_points != null
+                                    ? ` / ${answer.question_points}`
+                                    : ""}
+                                </span>
                               </div>
-                            ) : (
-                              <p className="text-xs text-muted-foreground">No AI metrics available.</p>
-                            )}
+                              {Object.keys(answer.aiMetrics || {}).length > 0 ? (
+                                <div className="space-y-2">
+                                  {Object.entries(answer.aiMetrics).map(([key, value]) => (
+                                    <MetricBar key={key} label={key} value={value} />
+                                  ))}
+                                </div>
+                              ) : (
+                                <p style={{ fontSize: "12px", color: "#9ca3af" }}>No AI metrics available.</p>
+                              )}
+                            </div>
+                          </td>
+                          <td style={tdStyle}>
                             {answer.aiFeedback ? (
-                              <p className="text-xs leading-5 text-muted-foreground whitespace-pre-wrap">
+                              <p style={{ fontSize: "13px", lineHeight: 1.6, color: "#4b5563", whiteSpace: "pre-wrap", background: "#f9fafb", padding: "10px 12px", borderRadius: "8px", border: "1px solid #e5e7eb" }}>
                                 {answer.aiFeedback}
                               </p>
-                            ) : null}
-                          </div>
-                        </TableCell>
-                        <TableCell className="align-top">
-                          <div className="font-semibold">
-                            {formatScore(answer.ai_score)}
-                          </div>
-                        </TableCell>
-                        <TableCell className="align-top">
-                          <div className="font-semibold">
-                            {formatScore(answer.final_score)}
-                          </div>
-                        </TableCell>
-                        <TableCell className="align-top">
-                          <Input
-                            type="number"
-                            min="0"
-                            max={answer.question_points || 100}
-                            value={questionScores[answer.id] ?? ""}
-                            onChange={(e) =>
-                              setQuestionScores((prev) => ({
-                                ...prev,
-                                [answer.id]: e.target.value,
-                              }))
-                            }
-                            placeholder={
-                              answer.final_score != null
-                                ? String(answer.final_score)
-                                : "Score"
-                            }
-                            className="w-28"
-                          />
-                        </TableCell>
-                        <TableCell className="align-top">
-                          {answer.video_url ? (
-                            <Button asChild variant="ghost" size="sm">
-                              <a href={answer.video_url} target="_blank" rel="noopener noreferrer">
-                                <Video className="mr-2 h-3 w-3" />
-                                Open
-                              </a>
-                            </Button>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">Text</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                            ) : (
+                              <span style={{ fontSize: "12px", color: "#9ca3af" }}>No feedback provided.</span>
+                            )}
+                          </td>
+                          <td style={{ ...tdStyle, textAlign: "center" }}>
+                            <div style={{ fontWeight: 600, color: "#111827" }}>
+                              {formatScore(answer.ai_score)}
+                            </div>
+                          </td>
+                          <td style={{ ...tdStyle, textAlign: "center" }}>
+                            <div style={{ fontWeight: 600, color: "#111827" }}>
+                              {formatScore(answer.final_score)}
+                            </div>
+                          </td>
+                          <td style={tdStyle}>
+                            <Input
+                              type="number"
+                              min="0"
+                              max={answer.question_points || 100}
+                              value={questionScores[answer.id] ?? ""}
+                              onChange={(e) =>
+                                setQuestionScores((prev) => ({
+                                  ...prev,
+                                  [answer.id]: e.target.value,
+                                }))
+                              }
+                              placeholder={
+                                answer.final_score != null
+                                  ? String(answer.final_score)
+                                  : "Score"
+                              }
+                              className="w-full"
+                            />
+                          </td>
+                          <td style={tdStyle}>
+                            {answer.video_url ? (
+                              <Button asChild variant="ghost" size="sm">
+                                <a href={answer.video_url} target="_blank" rel="noopener noreferrer">
+                                  <Video className="mr-2 h-3 w-3" />
+                                  Open
+                                </a>
+                              </Button>
+                            ) : (
+                              <span style={{ fontSize: "13px", color: "#9ca3af" }}>Text</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               ) : (
-                <div className="rounded-lg border border-dashed py-12 text-center text-sm text-muted-foreground">
-                  No answer breakdown is available for this result.
+                <div style={{ padding: "48px 24px", textAlign: "center" }}>
+                  <div style={{ color: "#6b7280", fontSize: "14px" }}>
+                    No answer breakdown is available for this result.
+                  </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         <aside className="space-y-6">
@@ -559,8 +632,8 @@ export default function ResultDetail() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">AI</p>
-                        <MetricBar label={key} value={overallMetrics.ai?.[key]} />
+                        <p className="text-xs text-muted-foreground mb-1">AI</p>
+                        <MetricBar label={key} value={overallMetrics.ai?.[key]} hideLabel />
                       </div>
                       <div className="space-y-1">
                         <p className="text-xs text-muted-foreground">Final</p>
@@ -645,4 +718,21 @@ export default function ResultDetail() {
       </section>
     </div>
   )
+}
+
+/* ── Inline Style Constants ── */
+
+const thStyle = {
+  padding: "10px 16px",
+  fontSize: "11.5px",
+  fontWeight: 600,
+  color: "#6b7280",
+  textTransform: "uppercase",
+  letterSpacing: "0.5px",
+  whiteSpace: "nowrap",
+}
+
+const tdStyle = {
+  padding: "16px",
+  verticalAlign: "top",
 }

@@ -6,6 +6,8 @@ import AdminLayout from "@/layouts/AdminLayout"
 import CandidateLayout from "@/layouts/CandidateLayout"
 
 import AdminLogin from "@/pages/admin/AdminLogin"
+import AdminForgotPassword from "@/pages/admin/AdminForgotPassword"
+import AdminResetPassword from "@/pages/admin/AdminResetPassword"
 import AdminDashboard from "@/pages/admin/AdminDashboard"
 import FormsList from "@/pages/admin/FormsList"
 import FormBuilder from "@/pages/admin/FormBuilder"
@@ -30,6 +32,16 @@ export default function AppRoutes() {
     {
       path: "/admin/login",
       element: <AdminLogin />,
+    },
+
+    {
+      path: "/admin/forgot-password",
+      element: <AdminForgotPassword />,
+    },
+
+    {
+      path: "/admin/reset-password",
+      element: <AdminResetPassword />,
     },
 
     {
