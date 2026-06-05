@@ -82,8 +82,8 @@ export default function ResultPage() {
 
   if (!result) {
     return (
-      <Card className="rounded-2xl">
-        <CardContent className="py-16 text-center text-sm text-muted-foreground">
+      <Card>
+        <CardContent className="py-16 text-center text-sm text-[#9CA3AF]">
           Result not found.
         </CardContent>
       </Card>
@@ -92,7 +92,7 @@ export default function ResultPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border bg-card p-6 shadow-sm">
+      <section className="rounded-lg border border-[#E5E7EB] bg-white p-6">
         <div className="mb-3">
           <Button asChild variant="ghost" className="px-0">
             <Link to="/candidate/dashboard">
@@ -107,7 +107,7 @@ export default function ResultPage() {
             <h1 className="text-2xl font-semibold tracking-tight">
               {summary.title}
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-[#374151]">
               Review your submission outcome, feedback, and answer details.
             </p>
           </div>
@@ -120,7 +120,7 @@ export default function ResultPage() {
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-          <Card className="rounded-2xl">
+          <Card>
             <CardHeader>
               <CardTitle>Evaluator Feedback</CardTitle>
               <CardDescription>
@@ -130,20 +130,20 @@ export default function ResultPage() {
 
             <CardContent>
               {summary.feedback ? (
-                <div className="rounded-xl border bg-muted/30 p-4">
+                <div className="rounded-lg border border-[#E5E7EB] bg-[#F3F4F6] p-4">
                   <p className="whitespace-pre-wrap text-sm leading-6">
                     {summary.feedback}
                   </p>
                 </div>
               ) : (
-                <div className="rounded-xl border border-dashed py-12 text-center text-sm text-muted-foreground">
+                <div className="rounded-lg border border-[#E5E7EB] border-dashed py-12 text-center text-sm text-[#9CA3AF]">
                   Feedback is not available yet.
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl">
+          <Card>
             <CardHeader>
               <CardTitle>Submitted Answers</CardTitle>
               <CardDescription>
@@ -176,7 +176,7 @@ export default function ResultPage() {
                       </div>
                     </div>
 
-                    <div className="rounded-xl border bg-muted/30 p-4">
+                    <div className="rounded-lg border border-[#E5E7EB] bg-[#F3F4F6] p-4">
                       {(() => {
                         const answerContent = answer.answer || answer.response || answer.value
                         
@@ -214,7 +214,7 @@ export default function ResultPage() {
                   </div>
                 ))
               ) : (
-                <div className="rounded-xl border border-dashed py-12 text-center text-sm text-muted-foreground">
+                <div className="rounded-lg border border-[#E5E7EB] border-dashed py-12 text-center text-sm text-[#9CA3AF]">
                   No answer breakdown is available yet.
                 </div>
               )}
@@ -223,7 +223,7 @@ export default function ResultPage() {
         </div>
 
         <aside className="space-y-6">
-          <Card className="rounded-2xl">
+          <Card>
             <CardHeader>
               <CardTitle>Result Summary</CardTitle>
               <CardDescription>
@@ -232,8 +232,8 @@ export default function ResultPage() {
             </CardHeader>
 
             <CardContent className="space-y-5">
-              <div className="flex items-center gap-3 rounded-2xl border bg-muted/30 p-4">
-                <div className="rounded-2xl bg-primary/10 p-3 text-primary">
+              <div className="flex items-center gap-3 rounded-lg border border-[#E5E7EB] bg-[#F3F4F6] p-4">
+                <div className="rounded-lg bg-[#F3F4F6] p-3 text-[#3B82F6]">
                   <Trophy className="h-5 w-5" />
                 </div>
 

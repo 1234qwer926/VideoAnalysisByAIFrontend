@@ -25,6 +25,17 @@ function getInitialTime(payload) {
     return Number(payload.overall_timer) * 60
   }
 
+  const questions = payload?.questions || payload?.form?.questions || []
+  if (questions.length > 0) {
+    const totalSeconds = questions.reduce((total, q) => {
+      const time = Number(q.section_time_seconds) || Number(q.config?.section_time_seconds) || 0
+      return total + time
+    }, 0)
+    if (totalSeconds > 0) {
+      return totalSeconds
+    }
+  }
+
   return null
 }
 

@@ -33,11 +33,8 @@ export default function AssignmentCreate() {
     form_id: "",
     start_date: "",
     end_date: "",
-    overall_timer_minutes: "",
     knowledge_base: "",
     ai_prompt: "",
-    per_question_timer_seconds: "",
-    submission_timer_minutes: "",
   })
 
   // Convert ISO datetime to datetime-local format
@@ -67,11 +64,8 @@ export default function AssignmentCreate() {
             form_id: assignment.form_id || "",
             start_date: formatDateTimeLocal(assignment.start_date),
             end_date: formatDateTimeLocal(assignment.end_date),
-            overall_timer_minutes: assignment.overall_timer_minutes || "",
             knowledge_base: assignment.knowledge_base || "",
             ai_prompt: assignment.ai_prompt || "",
-            per_question_timer_seconds: assignment.per_question_timer_seconds || "",
-            submission_timer_minutes: assignment.submission_timer_minutes || "",
           })
         }
       } catch (error) {
@@ -91,6 +85,23 @@ export default function AssignmentCreate() {
   const selectedForm = useMemo(() => {
     return forms.find((form) => String(form.id) === String(formData.form_id)) || null
   }, [forms, formData.form_id])
+
+  const totalTimeSeconds = useMemo(() => {
+    if (!selectedForm || !Array.isArray(selectedForm.questions)) return 0
+    return selectedForm.questions.reduce((total, q) => {
+      const time = Number(q.section_time_seconds) || Number(q.config?.section_time_seconds) || 0
+      return total + time
+    }, 0)
+  }, [selectedForm])
+
+  const formatTotalTime = (seconds) => {
+    if (!seconds) return "0s"
+    const m = Math.floor(seconds / 60)
+    const s = seconds % 60
+    if (m > 0 && s > 0) return `${m}m ${s}s`
+    if (m > 0) return `${m}m`
+    return `${s}s`
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -130,17 +141,11 @@ export default function AssignmentCreate() {
       form_id: Number(formData.form_id),
       start_date: formData.start_date || null,
       end_date: formData.end_date || null,
-      overall_timer_minutes: formData.overall_timer_minutes
-        ? Number(formData.overall_timer_minutes)
-        : null,
+      overall_timer_minutes: null,
       knowledge_base: formData.knowledge_base || null,
       ai_prompt: formData.ai_prompt || null,
-      per_question_timer_seconds: formData.per_question_timer_seconds
-        ? Number(formData.per_question_timer_seconds)
-        : null,
-      submission_timer_minutes: formData.submission_timer_minutes
-        ? Number(formData.submission_timer_minutes)
-        : null,
+      per_question_timer_seconds: null,
+      submission_timer_minutes: null,
     }
   }
 
@@ -187,7 +192,7 @@ export default function AssignmentCreate() {
         </div>
       ) : (
         <>
-          <section className="rounded-2xl border bg-card p-6 shadow-sm">
+          <section className="rounded-lg border border-[#E5E7EB] bg-white p-6">
             <div className="mb-3">
               <Button asChild variant="ghost" className="px-0">
                 <Link to="/admin/assignments">
@@ -209,7 +214,7 @@ export default function AssignmentCreate() {
 
           <form onSubmit={handleSubmit} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-          <Card className="rounded-2xl">
+          <Card>
             <CardHeader>
               <CardTitle>Assignment Details</CardTitle>
               <CardDescription>
@@ -264,7 +269,7 @@ export default function AssignmentCreate() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl">
+          <Card>
             <CardHeader>
               <CardTitle>Schedule & Timing</CardTitle>
               <CardDescription>
@@ -295,44 +300,7 @@ export default function AssignmentCreate() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="overall_timer_minutes">Overall Timer (minutes)</Label>
-                <Input
-                  id="overall_timer_minutes"
-                  name="overall_timer_minutes"
-                  type="number"
-                  min="1"
-                  placeholder="60"
-                  value={formData.overall_timer_minutes}
-                  onChange={handleChange}
-                />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="per_question_timer_seconds">Per Question Timer (seconds)</Label>
-                <Input
-                  id="per_question_timer_seconds"
-                  name="per_question_timer_seconds"
-                  type="number"
-                  min="1"
-                  placeholder="60"
-                  value={formData.per_question_timer_seconds}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="submission_timer_minutes">Submission Timer (minutes)</Label>
-                <Input
-                  id="submission_timer_minutes"
-                  name="submission_timer_minutes"
-                  type="number"
-                  min="1"
-                  placeholder="5"
-                  value={formData.submission_timer_minutes}
-                  onChange={handleChange}
-                />
-              </div>
 
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="knowledge_base">Knowledge Base</Label>
@@ -382,7 +350,7 @@ export default function AssignmentCreate() {
         </div>
 
         <aside>
-          <Card className="rounded-2xl">
+          <Card>
             <CardHeader>
               <CardTitle>Selected Form</CardTitle>
               <CardDescription>
@@ -402,7 +370,7 @@ export default function AssignmentCreate() {
                     </p>
                   </div>
 
-                  <div className="rounded-xl border bg-muted/30 p-4 text-sm">
+                  <div className="rounded-lg border border-[#E5E7EB] bg-[#F3F4F6] p-4 text-sm">
                     <p>
                       Questions:{" "}
                       <span className="font-medium">
@@ -417,10 +385,16 @@ export default function AssignmentCreate() {
                         {selectedForm.category || "-"}
                       </span>
                     </p>
+                    <p className="mt-2">
+                      Total Time:{" "}
+                      <span className="font-medium">
+                        {formatTotalTime(totalTimeSeconds)}
+                      </span>
+                    </p>
                   </div>
                 </>
               ) : (
-                <div className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">
+                <div className="rounded-lg border border-[#E5E7EB] border-dashed py-10 text-center text-sm text-[#9CA3AF]">
                   Select a form to preview its details.
                 </div>
               )}

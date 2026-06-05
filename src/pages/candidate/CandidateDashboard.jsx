@@ -101,7 +101,7 @@ export default function CandidateDashboard() {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-4 rounded-2xl border bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <section className="flex flex-col gap-4 rounded-lg border border-[#E5E7EB] bg-white p-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
             Candidate Dashboard
@@ -130,7 +130,7 @@ export default function CandidateDashboard() {
           { label: "Completed", value: stats.completedAssignments },
           { label: "Results", value: stats.availableResults },
         ].map((item) => (
-          <Card key={item.label} className="rounded-2xl">
+          <Card key={item.label}>
             <CardContent className="p-6">
               <p className="text-sm text-muted-foreground">{item.label}</p>
               <p className="mt-2 text-2xl font-semibold">{item.value}</p>
@@ -141,7 +141,7 @@ export default function CandidateDashboard() {
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-          <Card className="rounded-2xl">
+          <Card>
             <CardHeader>
               <CardTitle>Assigned Assessments</CardTitle>
               <CardDescription>
@@ -152,7 +152,7 @@ export default function CandidateDashboard() {
             <CardContent className="space-y-4">
               {isLoading ? (
                 Array.from({ length: 4 }).map((_, index) => (
-                  <Skeleton key={index} className="h-28 w-full rounded-2xl" />
+                  <Skeleton key={index} className="h-28 w-full rounded-lg" />
                 ))
               ) : assignments.length > 0 ? (
                 assignments.map((assignment) => {
@@ -177,7 +177,7 @@ export default function CandidateDashboard() {
                   return (
                     <div
                       key={assignment.assignment_id || assignment.id}
-                      className="rounded-2xl border p-4 transition-colors hover:bg-muted/30"
+                      className="rounded-lg border border-[#E5E7EB] p-4 transition-colors hover:border-[#D1D5DB]"
                     >
                       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div className="space-y-2">
@@ -240,7 +240,7 @@ export default function CandidateDashboard() {
                   )
                 })
               ) : (
-                <div className="rounded-xl border border-dashed py-14 text-center text-sm text-muted-foreground">
+                <div className="rounded-lg border border-[#E5E7EB] border-dashed py-14 text-center text-sm text-[#374151]">
                   No assignments are available right now.
                 </div>
               )}
@@ -249,7 +249,7 @@ export default function CandidateDashboard() {
         </div>
 
         <aside className="space-y-6">
-          <Card className="rounded-2xl">
+          <Card>
             <CardHeader>
               <CardTitle>Progress</CardTitle>
               <CardDescription>
@@ -269,7 +269,7 @@ export default function CandidateDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl">
+          <Card>
             <CardHeader>
               <CardTitle>Recent Results</CardTitle>
               <CardDescription>
@@ -282,7 +282,7 @@ export default function CandidateDashboard() {
                 results.slice(0, 5).map((result) => (
                   <div
                     key={result.id}
-                    className="flex items-center justify-between rounded-xl border p-3"
+                    className="flex items-center justify-between rounded-lg border border-[#E5E7EB] p-3 hover:border-[#D1D5DB] transition-colors"
                   >
                     <div className="min-w-0">
                       <p className="truncate font-medium">
@@ -307,7 +307,7 @@ export default function CandidateDashboard() {
                   </div>
                 ))
               ) : (
-                <div className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">
+                <div className="rounded-lg border border-[#E5E7EB] border-dashed py-10 text-center text-sm text-[#374151]">
                   No results available yet.
                 </div>
               )}

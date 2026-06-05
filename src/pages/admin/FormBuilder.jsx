@@ -237,7 +237,7 @@ export default function FormBuilder() {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-4 rounded-2xl border bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <section className="flex flex-col gap-4 rounded-lg border border-[#E5E7EB] bg-white p-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div className="mb-2">
             <Button asChild variant="ghost" className="px-0">
@@ -263,7 +263,7 @@ export default function FormBuilder() {
       </section>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="rounded-2xl">
+        <Card>
           <CardHeader>
             <CardTitle>Form Details</CardTitle>
             <CardDescription>

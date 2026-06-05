@@ -59,6 +59,7 @@ export default function ExamPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [timeLeft, setTimeLeft] = useState(null)
   const [sectionTimeLeft, setSectionTimeLeft] = useState(null)
+  const [questionTimeLeft, setQuestionTimeLeft] = useState(null)
 
   const [showInstructions, setShowInstructions] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
@@ -66,6 +67,9 @@ export default function ExamPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isVideoUploading, setIsVideoUploading] = useState(false)
   const [cameraState, setCameraState] = useState({ recordingState: "idle", hasPreview: false })
+  const [autoSubmitPending, setAutoSubmitPending] = useState(false)
+  const videoRecorderRef = useRef(null)
+  const submitInFlightRef = useRef(false)
   const lastViolationAtRef = useRef(0)
   const questions = useMemo(() => {
     if (!exam) return []
@@ -104,7 +108,13 @@ export default function ExamPage() {
         } else if (payload?.overall_timer != null) {
           setTimeLeft(Number(payload.overall_timer) * 60)
         } else {
-          setTimeLeft(null)
+          const qs = payload?.questions || payload?.form?.questions || []
+          let total = 0
+          for (const q of qs) {
+             const time = Number(q.section_time_seconds) || Number(q.config?.section_time_seconds) || 0
+             total += time
+          }
+          setTimeLeft(total > 0 ? total : null)
         }
       } catch (error) {
         const message = error?.response?.data?.detail || "Failed to load exam"
@@ -184,6 +194,60 @@ export default function ExamPage() {
   }, [sectionTimeLeft, currentSection, isSubmitting, questions.length])
 
   const currentQuestion = questions[currentIndex]
+
+  useEffect(() => {
+    if (!currentQuestion) {
+      setQuestionTimeLeft(null)
+      return
+    }
+    const qSeconds = Number(currentQuestion.section_time_seconds) || Number(currentQuestion.config?.section_time_seconds)
+    if (!Number.isFinite(qSeconds) || qSeconds <= 0) {
+      setQuestionTimeLeft(null)
+      return
+    }
+    setQuestionTimeLeft(qSeconds)
+  }, [currentQuestion?.id, currentIndex, currentQuestion?.section_time_seconds])
+
+  useEffect(() => {
+    if (questionTimeLeft == null || questionTimeLeft <= 0) return
+
+    const interval = setInterval(() => {
+      setQuestionTimeLeft((prev) => {
+        if (prev == null) return prev
+        if (prev <= 1) {
+          clearInterval(interval)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [questionTimeLeft])
+
+  useEffect(() => {
+    if (questionTimeLeft === 0 && !isSubmitting) {
+      toast.error(`Time is up for this question. Moving to next...`)
+      if (currentQuestion?.type === "video" && videoRecorderRef.current?.isRecording()) {
+        setAutoSubmitPending(true)
+        videoRecorderRef.current.stopRecording()
+      } else {
+        submitQuestion(true, true)
+      }
+    }
+  }, [questionTimeLeft])
+
+  useEffect(() => {
+    if (autoSubmitPending) {
+      const questionKey = currentQuestion?.id ?? currentIndex
+      const answer = answers[questionKey]
+      if (answer && answer.upload_status === "pending") {
+        setAutoSubmitPending(false)
+        submitQuestion(true, true)
+      }
+    }
+  }, [answers, autoSubmitPending, currentQuestion, currentIndex])
+
   const currentQuestionText =
     currentQuestion?.prompt ||
     currentQuestion?.description ||
@@ -209,72 +273,19 @@ export default function ExamPage() {
     }))
   }
 
-  const submitQuestion = async (moveToNext = true) => {
-    if (!exam || !currentQuestion) return
-    if (isVideoUploading) {
-      toast.error("Please wait for video upload to finish before submitting.")
-      return
-    }
-
-    const questionKey = currentQuestion?.id ?? currentIndex
-    const answer = answers[questionKey]
-    const isVideoQuestion = currentQuestion?.type === "video"
-
-    // Validate answer based on question type
-    if (isVideoQuestion) {
-      if (!answer || typeof answer !== "object" || !answer.upload_status) {
-        toast.error("Please record a video answer before submitting.")
-        return
-      }
-      if (answer.upload_status !== "uploaded") {
-        toast.error("Please wait for video to be uploaded before submitting.")
-        return
-      }
-    } else {
-      if (answer == null || String(answer).trim() === "") {
-        toast.error("Please answer the question before submitting.")
-        return
-      }
-    }
+  const handleSubmitExam = async (
+    answersOverride = null,
+    autoSubmitted = false,
+    allowWhileLocked = false
+  ) => {
+    if (!exam || (submitInFlightRef.current && !allowWhileLocked)) return
 
     try {
+      submitInFlightRef.current = true
       setIsSubmitting(true)
 
-      // Submit progress
-      const response = await api.post(`/api/exam/save?token=${token}`, {
-        answers: answers,
-        current_question_index: moveToNext ? currentIndex + 1 : currentIndex
-      })
-
-      toast.success("Progress saved!")
-
-      if (moveToNext) {
-        if (currentIndex < questions.length - 1) {
-          // Move to next question
-          setCurrentIndex(currentIndex + 1)
-        } else {
-          // All questions answered, show completion
-          // Submit all remaining answers and finish
-          handleSubmitExam()
-        }
-      }
-    } catch (error) {
-      const message = error?.response?.data?.detail || "Failed to submit question"
-      toast.error(
-        typeof message === "string" ? message : "Failed to submit question"
-      )
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleSubmitExam = async () => {
-    if (!exam) return
-
-    try {
-      setIsSubmitting(true)
-
-      const responses = Object.entries(answers).map(([questionId, answer]) => {
+      const sourceAnswers = answersOverride || answers
+      const responses = Object.entries(sourceAnswers).map(([questionId, answer]) => {
         const isVideoAnswer =
           answer && typeof answer === "object" && answer.type === "video"
         return {
@@ -293,7 +304,7 @@ export default function ExamPage() {
       const response = await api.post(`/api/exam/submit`, {
         assignment_user_token: token,
         responses,
-        is_auto_submitted: false,
+        is_auto_submitted: autoSubmitted,
       })
 
       toast.success("Exam submitted successfully!")
@@ -314,13 +325,107 @@ export default function ExamPage() {
         typeof message === "string" ? message : "Failed to submit exam"
       )
     } finally {
+      submitInFlightRef.current = false
+      setIsSubmitting(false)
+    }
+  }
+
+  const submitQuestion = async (moveToNext = true, forceSubmit = false) => {
+    if (!exam || !currentQuestion) return
+    if (submitInFlightRef.current) return
+    if (isVideoUploading) {
+      toast.error("Please wait for video upload to finish before submitting.")
+      return
+    }
+
+    const questionKey = currentQuestion?.id ?? currentIndex
+    let answer = answers[questionKey]
+    let nextAnswers = answers
+    const isVideoQuestion = currentQuestion?.type === "video"
+
+    // Validate answer based on question type
+    if (isVideoQuestion) {
+      if (!answer || typeof answer !== "object" || (!answer.s3_key && !answer.blob)) {
+        if (!forceSubmit) {
+          toast.error("Please record a video answer before submitting.")
+          return
+        } else {
+          answer = null
+        }
+      }
+
+      if (answer && answer.upload_status === "pending" && answer.blob) {
+        try {
+          setIsVideoUploading(true)
+          const formData = new FormData()
+          const ext = answer.mime_type === "video/mp4" ? ".mp4" : ".webm"
+          formData.append("file", answer.blob, `q${questionKey}${ext}`)
+          
+          const uploadResponse = await api.post(
+            `/api/exam/upload-video?token=${token}&question_id=${Number(questionKey)}`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          )
+          
+          const s3Key = uploadResponse?.data?.s3_key
+          if (!s3Key) throw new Error("Missing S3 key from upload response")
+
+          answer = { ...answer, upload_status: "uploaded", s3_key: s3Key }
+          nextAnswers = { ...answers, [questionKey]: answer }
+          setAnswers(nextAnswers)
+        } catch (error) {
+          if (!forceSubmit) {
+            const message = error?.response?.data?.detail || error?.message || "Video upload failed"
+            toast.error(typeof message === "string" ? message : "Video upload failed")
+            return
+          }
+        } finally {
+          setIsVideoUploading(false)
+        }
+      }
+    } else {
+      if (!forceSubmit && (answer == null || String(answer).trim() === "")) {
+        toast.error("Please answer the question before submitting.")
+        return
+      }
+    }
+
+    try {
+      submitInFlightRef.current = true
+      setIsSubmitting(true)
+
+      // Submit progress
+      const response = await api.post(`/api/exam/save?token=${token}`, {
+        answers: nextAnswers,
+        current_question_index: moveToNext ? currentIndex + 1 : currentIndex
+      })
+
+      toast.success("Progress saved!")
+
+      if (moveToNext) {
+        if (currentIndex < questions.length - 1) {
+          // Move to next question
+          setCurrentIndex(currentIndex + 1)
+        } else {
+          // All questions answered, show completion
+          // Submit all remaining answers and finish
+          await handleSubmitExam(nextAnswers, forceSubmit, true)
+        }
+      }
+    } catch (error) {
+      const message = error?.response?.data?.detail || "Failed to submit question"
+      toast.error(
+        typeof message === "string" ? message : "Failed to submit question"
+      )
+    } finally {
+      submitInFlightRef.current = false
       setIsSubmitting(false)
     }
   }
 
   const handleSubmit = async (autoSubmit = false) => {
     if (autoSubmit) {
-      handleSubmitExam()
+      handleSubmitExam(answers, true)
     } else {
       submitQuestion(true)
     }
@@ -366,65 +471,6 @@ export default function ExamPage() {
     setShowInstructions(false)
   }
 
-  const uploadVideoAnswer = async (questionId, blob, mimeType, duration, previewUrl) => {
-    setIsVideoUploading(true)
-    handleAnswerChange(questionId, {
-      type: "video",
-      upload_status: "uploading",
-      preview_url: previewUrl,
-      duration,
-      mime_type: mimeType,
-    })
-
-    try {
-      const presigned = await api.post(
-        `/api/exam/presigned-upload?token=${token}&question_id=${Number(questionId)}&content_type=${encodeURIComponent(mimeType || "video/webm")}`
-      )
-      const uploadUrl = presigned?.data?.upload_url
-      const s3Key = presigned?.data?.s3_key
-
-      if (!uploadUrl || !s3Key) {
-        throw new Error("Missing upload URL or S3 key")
-      }
-
-      const uploadResponse = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": mimeType || "video/webm",
-        },
-        body: blob,
-      })
-
-      if (!uploadResponse.ok) {
-        throw new Error(`Upload failed with status ${uploadResponse.status}`)
-      }
-
-      handleAnswerChange(questionId, {
-        type: "video",
-        upload_status: "uploaded",
-        s3_key: s3Key,
-        preview_url: previewUrl,
-        duration,
-        mime_type: mimeType,
-      })
-      toast.success("Video uploaded successfully")
-    } catch (error) {
-      handleAnswerChange(questionId, {
-        type: "video",
-        upload_status: "failed",
-        preview_url: previewUrl,
-        duration,
-        mime_type: mimeType,
-      })
-      const message =
-        error?.response?.data?.detail ||
-        error?.message ||
-        "Video upload failed"
-      toast.error(typeof message === "string" ? message : "Video upload failed")
-    } finally {
-      setIsVideoUploading(false)
-    }
-  }
 
   if (isLoading) {
     return (
@@ -439,9 +485,9 @@ export default function ExamPage() {
 
   if (!exam || questions.length === 0) {
     return (
-      <Card className="mx-auto max-w-3xl rounded-2xl">
+      <Card className="mx-auto max-w-3xl">
         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mb-4 rounded-2xl bg-muted p-3 text-muted-foreground">
+          <div className="mb-4 rounded-lg bg-gray-100 p-3 text-gray-500">
             <AlertTriangle className="h-6 w-6" />
           </div>
           <h1 className="text-xl font-semibold">Exam unavailable</h1>
@@ -490,7 +536,7 @@ export default function ExamPage() {
       <div className="mx-auto max-w-6xl px-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main content - Question */}
         <div className="lg:col-span-2 space-y-4">
-          <Card className="rounded-2xl">
+          <Card>
             {currentQuestion ? (
               <>
                 <CardHeader className="space-y-4">
@@ -504,6 +550,13 @@ export default function ExamPage() {
                         Section: {currentSection.name}
                       </Badge>
                     )}
+
+                    {questionTimeLeft != null && (
+                      <Badge variant="destructive" className="flex items-center gap-1">
+                        <Clock3 className="h-3 w-3" />
+                        {formatTime(questionTimeLeft)} left for this question
+                      </Badge>
+                    )}
                   </div>
 
                   <CardTitle className="text-xl">
@@ -514,7 +567,7 @@ export default function ExamPage() {
                 </CardHeader>
 
                 <CardContent className="space-y-6">
-                  <div className="rounded-2xl border bg-card p-4">
+                  <div className="rounded-lg border border-[#E5E7EB] bg-white p-4">
                     <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">
                       {currentQuestionText}
                     </p>
@@ -525,13 +578,21 @@ export default function ExamPage() {
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Your Video Response</label>
                       <VideoRecorder
+                        ref={videoRecorderRef}
                         maxDuration={120}
                         autoInitialize={true}
                         compact={false}
                         hidePreview={true}
                         onRecordingComplete={({ blob, url, duration, mimeType }) => {
                           const questionId = currentQuestion?.id ?? currentIndex
-                          uploadVideoAnswer(questionId, blob, mimeType, duration, url)
+                          handleAnswerChange(questionId, {
+                            type: "video",
+                            upload_status: "pending",
+                            preview_url: url,
+                            blob,
+                            duration,
+                            mime_type: mimeType,
+                          })
                         }}
                       />
                       {answers[currentQuestion?.id ?? currentIndex]?.upload_status && (
@@ -617,7 +678,7 @@ export default function ExamPage() {
         {/* Sidebar - Camera preview + Progress */}
         <div className="space-y-4">
           {/* Camera in top right - always show for monitoring */}
-          <Card className="rounded-2xl overflow-hidden">
+          <Card className="overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Your Camera</CardTitle>
             </CardHeader>
@@ -627,12 +688,13 @@ export default function ExamPage() {
                 maxDuration={120}
                 autoInitialize={true}
                 compact={true}
+                previewOnly={true}
               />
             </CardContent>
           </Card>
 
           {/* Progress indicator */}
-          <Card className="rounded-2xl">
+          <Card>
             <CardHeader>
               <CardTitle className="text-base">Progress</CardTitle>
             </CardHeader>

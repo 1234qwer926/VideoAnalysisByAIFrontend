@@ -101,7 +101,7 @@ export default function FormsList() {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-4 rounded-2xl border bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <section className="flex flex-col gap-4 rounded-lg border border-[#E5E7EB] bg-white p-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Forms</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -130,7 +130,7 @@ export default function FormsList() {
         </div>
       </section>
 
-      <Card className="rounded-2xl">
+      <Card>
         <CardHeader>
           <CardTitle>Form Library</CardTitle>
           <CardDescription>
@@ -152,11 +152,11 @@ export default function FormsList() {
           {isLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 6 }).map((_, index) => (
-                <Skeleton key={index} className="h-14 w-full rounded-xl" />
+                <Skeleton key={index} className="h-14 w-full rounded-lg" />
               ))}
             </div>
           ) : filteredForms.length > 0 ? (
-            <div className="overflow-x-auto rounded-xl border">
+            <div className="overflow-x-auto rounded-lg border border-[#E5E7EB]">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -248,7 +248,7 @@ export default function FormsList() {
               </Table>
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed py-14 text-center">
+            <div className="rounded-lg border border-[#E5E7EB] border-dashed py-14 text-center">
               <p className="text-sm text-muted-foreground">
                 No forms matched your search.
               </p>

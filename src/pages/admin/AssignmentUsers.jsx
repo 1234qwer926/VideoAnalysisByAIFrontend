@@ -179,7 +179,7 @@ export default function AssignmentUsers() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border bg-card p-6 shadow-sm">
+      <section className="rounded-lg border border-[#E5E7EB] bg-white p-6">
         <div className="mb-3">
           <Button asChild variant="ghost" className="px-0">
             <Link to="/admin/assignments">
@@ -226,7 +226,7 @@ export default function AssignmentUsers() {
           { label: "Active", value: stats.active },
           { label: "Completed", value: stats.completed },
         ].map((item) => (
-          <Card key={item.label} className="rounded-2xl">
+          <Card key={item.label}>
             <CardContent className="p-6">
               <p className="text-sm text-muted-foreground">{item.label}</p>
               <p className="mt-2 text-2xl font-semibold">{item.value}</p>
@@ -236,7 +236,7 @@ export default function AssignmentUsers() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <Card className="rounded-2xl">
+        <Card>
           <CardHeader>
             <CardTitle>Assigned Candidates</CardTitle>
             <CardDescription>
@@ -248,11 +248,11 @@ export default function AssignmentUsers() {
             {isLoading ? (
               <div className="space-y-3">
                 {Array.from({ length: 6 }).map((_, index) => (
-                  <Skeleton key={index} className="h-14 w-full rounded-xl" />
+                  <Skeleton key={index} className="h-14 w-full rounded-lg" />
                 ))}
               </div>
             ) : users.length > 0 ? (
-              <div className="overflow-x-auto rounded-xl border">
+              <div className="overflow-x-auto rounded-lg border border-[#E5E7EB]">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -343,14 +343,14 @@ export default function AssignmentUsers() {
                 </Table>
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed py-14 text-center text-sm text-muted-foreground">
+              <div className="rounded-lg border border-[#E5E7EB] border-dashed py-14 text-center text-sm text-[#9CA3AF]">
                 No candidates have been assigned yet.
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl">
+        <Card>
           <CardHeader>
             <CardTitle>Add Candidate</CardTitle>
             <CardDescription>

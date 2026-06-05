@@ -95,7 +95,7 @@ export default function Results() {
         </Button>
       </section>
 
-      <Card className="rounded-2xl">
+      <Card>
         <CardHeader>
           <CardTitle>Search Assignments</CardTitle>
           <CardDescription>
@@ -118,7 +118,7 @@ export default function Results() {
       {isLoading ? (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
-            <Card key={index} className="rounded-2xl">
+            <Card key={index}>
               <CardHeader className="space-y-3">
                 <Skeleton className="h-5 w-40" />
                 <Skeleton className="h-4 w-56" />
@@ -132,9 +132,9 @@ export default function Results() {
           ))}
         </section>
       ) : filteredAssignments.length === 0 ? (
-        <Card className="rounded-2xl border-dashed">
+        <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-14 text-center">
-            <div className="mb-4 rounded-2xl bg-muted p-3 text-muted-foreground">
+            <div className="mb-4 rounded-lg bg-[#F3F4F6] p-3 text-[#9CA3AF]">
               <BarChart3 className="h-6 w-6" />
             </div>
             <h2 className="text-lg font-semibold">No assignments available</h2>
@@ -151,7 +151,7 @@ export default function Results() {
           {filteredAssignments.map((assignment) => (
             <Card
               key={assignment.id}
-              className="rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-md"
+              className="transition-all hover:-translate-y-0.5"
             >
               <CardHeader className="space-y-3">
                 <div className="flex items-start justify-between gap-3">

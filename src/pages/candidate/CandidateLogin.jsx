@@ -81,10 +81,10 @@ export default function CandidateLogin() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/20 px-4 py-10">
-      <Card className="w-full max-w-md rounded-2xl shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-[#F3F4F6] px-4 py-10">
+      <Card className="w-full max-w-md">
         <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-[#F3F4F6] text-[#3B82F6]">
             <UserRoundCheck className="h-6 w-6" />
           </div>
 
@@ -135,11 +135,11 @@ export default function CandidateLogin() {
               )}
             </Button>
 
-            <div className="text-center text-sm text-muted-foreground">
+            <div className="text-center text-sm text-[#9CA3AF]">
               Admin login?{" "}
               <Link
                 to="/admin/login"
-                className="font-medium text-primary hover:underline"
+                className="font-medium text-[#3B82F6] hover:underline"
               >
                 Go to admin portal
               </Link>

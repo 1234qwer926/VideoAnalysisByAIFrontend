@@ -25,14 +25,14 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 function StatCard({ title, value, icon: Icon, description }) {
   return (
-    <Card className="rounded-2xl">
+    <Card>
       <CardContent className="flex items-center justify-between p-6">
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>
           <p className="mt-1 text-2xl font-semibold">{value}</p>
           <p className="mt-1 text-xs text-muted-foreground">{description}</p>
         </div>
-        <div className="rounded-2xl bg-muted p-3 text-muted-foreground">
+        <div className="rounded-lg bg-[#F3F4F6] p-3 text-[#9CA3AF]">
           <Icon className="h-5 w-5" />
         </div>
       </CardContent>
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-4 rounded-2xl border bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <section className="flex flex-col gap-4 rounded-lg border border-[#E5E7EB] bg-white p-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">
             Admin Dashboard
@@ -168,7 +168,7 @@ export default function AdminDashboard() {
       {isLoading ? (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} className="h-32 w-full rounded-2xl" />
+            <Skeleton key={index} className="h-32 w-full rounded-lg" />
           ))}
         </section>
       ) : (
@@ -207,7 +207,7 @@ export default function AdminDashboard() {
       )}
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <Card className="rounded-2xl">
+        <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl">
+        <Card>
           <CardHeader>
             <CardTitle>Recent Assignments</CardTitle>
             <CardDescription>
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
               recentAssignments.map((assignment) => (
                 <div
                   key={assignment.id}
-                  className="flex items-center justify-between rounded-xl border p-3"
+                  className="flex items-center justify-between rounded-lg border border-[#E5E7EB] p-3"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium">
@@ -264,7 +264,7 @@ export default function AdminDashboard() {
                 </div>
               ))
             ) : (
-              <div className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">
+              <div className="rounded-lg border border-[#E5E7EB] border-dashed py-10 text-center text-sm text-[#9CA3AF]">
                 No assignments found.
               </div>
             )}
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
       </section>
 
       <section>
-        <Card className="rounded-2xl">
+        <Card>
           <CardHeader>
             <CardTitle>Recent Results</CardTitle>
             <CardDescription>
@@ -286,7 +286,7 @@ export default function AdminDashboard() {
               recentResults.map((result) => (
                 <div
                   key={result.id}
-                  className="flex flex-col gap-3 rounded-xl border p-4 md:flex-row md:items-center md:justify-between"
+                  className="flex flex-col gap-3 rounded-lg border border-[#E5E7EB] p-4 md:flex-row md:items-center md:justify-between"
                 >
                   <div className="min-w-0">
                     <p className="font-medium">
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
                 </div>
               ))
             ) : (
-              <div className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">
+              <div className="rounded-lg border border-[#E5E7EB] border-dashed py-10 text-center text-sm text-[#9CA3AF]">
                 No results available yet.
               </div>
             )}

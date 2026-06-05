@@ -29,11 +29,6 @@ const NAV_ITEMS = [
     icon: FileText,
   },
   {
-    label: "Create Form",
-    to: "/admin/forms/create",
-    icon: PlusSquare,
-  },
-  {
     label: "Assignments",
     to: "/admin/assignments",
     icon: ClipboardList,
@@ -82,7 +77,7 @@ function SidebarContent({ onNavigate }) {
 
       <Separator />
 
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 flex flex-col space-y-1 py-4">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon
 
@@ -93,14 +88,14 @@ function SidebarContent({ onNavigate }) {
               onClick={onNavigate}
               className={({ isActive }) =>
                 [
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-4 h-[44px] text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "border-l-[3px] border-[#60A5FA] bg-[rgba(59,130,246,0.1)] text-white"
+                    : "text-gray-300 border-l-[3px] border-transparent hover:bg-[rgba(255,255,255,0.05)] hover:text-white",
                 ].join(" ")
               }
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-[20px] w-[20px]" />
               <span>{item.label}</span>
             </NavLink>
           )
@@ -133,12 +128,12 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-muted/20">
       <div className="flex min-h-screen">
-        <aside className="hidden w-72 border-r bg-background lg:flex">
+        <aside className="hidden w-[200px] bg-gradient-to-b from-[#1F2937] to-[#111827] text-white lg:flex">
           <SidebarContent />
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:px-6">
+          <header className="sticky top-0 z-30 flex h-[64px] items-center justify-between border-b border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1)] px-4 lg:px-6">
             <div className="flex items-center gap-3">
               <Sheet open={open} onOpenChange={setOpen}>
                 <SheetTrigger asChild className="lg:hidden">
@@ -147,13 +142,14 @@ export default function AdminLayout() {
                   </Button>
                 </SheetTrigger>
 
-                <SheetContent side="left" className="w-72 p-0">
-                  <div className="flex items-center justify-between border-b px-4 py-4">
+                <SheetContent side="left" className="w-[200px] p-0 bg-gradient-to-b from-[#1F2937] to-[#111827] text-white">
+                  <div className="flex items-center justify-between border-b border-gray-700 px-4 py-4">
                     <p className="text-sm font-semibold">Navigation</p>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setOpen(false)}
+                      className="text-white hover:bg-gray-800"
                     >
                       <X className="h-4 w-4" />
                     </Button>

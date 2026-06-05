@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react"
 import {
   Camera,
   Loader2,
@@ -37,7 +37,7 @@ function getSupportedMimeType() {
   return ""
 }
 
-export default function VideoRecorder({
+const VideoRecorder = forwardRef(({
   onRecordingComplete,
   onStateChange,
   maxDuration = 120,
@@ -45,7 +45,8 @@ export default function VideoRecorder({
   autoInitialize = true,
   compact = false,
   hidePreview = false,
-}) {
+  previewOnly = false,
+}, ref) => {
   const videoRef = useRef(null)
   const mediaRecorderRef = useRef(null)
   const mediaStreamRef = useRef(null)
@@ -57,6 +58,13 @@ export default function VideoRecorder({
   const [previewUrl, setPreviewUrl] = useState("")
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [errorMessage, setErrorMessage] = useState("")
+
+  useImperativeHandle(ref, () => ({
+    stopRecording: () => {
+      handleStopRecording()
+    },
+    isRecording: () => recordingState === "recording"
+  }))
 
   // Notify parent of state changes
   useEffect(() => {
@@ -273,45 +281,47 @@ export default function VideoRecorder({
           </div>
         )}
 
-        <div className="space-y-2">
-          {permissionState === "granted" && recordingState !== "recording" && (
-            <Button 
-              size="sm" 
-              onClick={() => startRecording()}
-              className="w-full"
-            >
-              <Video className="mr-2 h-3.5 w-3.5" />
-              Start Recording
-            </Button>
-          )}
+        {!previewOnly && (
+          <div className="space-y-2">
+            {permissionState === "granted" && recordingState !== "recording" && (
+              <Button 
+                size="sm" 
+                onClick={() => startRecording()}
+                className="w-full"
+              >
+                <Video className="mr-2 h-3.5 w-3.5" />
+                Start Recording
+              </Button>
+            )}
 
-          {recordingState === "recording" && (
-            <Button 
-              size="sm"
-              variant="destructive" 
-              onClick={handleStopRecording}
-              className="w-full"
-            >
-              <Square className="mr-2 h-3.5 w-3.5" />
-              Stop ({formatDuration(elapsedSeconds)})
-            </Button>
-          )}
+            {recordingState === "recording" && (
+              <Button 
+                size="sm"
+                variant="destructive" 
+                onClick={handleStopRecording}
+                className="w-full"
+              >
+                <Square className="mr-2 h-3.5 w-3.5" />
+                Stop ({formatDuration(elapsedSeconds)})
+              </Button>
+            )}
 
-          {(recordingState === "stopped" || previewUrl) && !recordingState === "recording" && (
-            <Button 
-              size="sm"
-              variant="outline" 
-              onClick={handleRetake}
-              className="w-full"
-            >
-              <RefreshCw className="mr-2 h-3.5 w-3.5" />
-              Retake
-            </Button>
-          )}
-        </div>
+            {(recordingState === "stopped" || previewUrl) && !recordingState === "recording" && (
+              <Button 
+                size="sm"
+                variant="outline" 
+                onClick={handleRetake}
+                className="w-full"
+              >
+                <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                Retake
+              </Button>
+            )}
+          </div>
+        )}
 
         {errorMessage && (
-          <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive">
+          <div className="rounded-md border border-[#EF4444]/30 bg-[#FEE2E2] p-2 text-xs text-destructive">
             {errorMessage}
           </div>
         )}
@@ -320,7 +330,7 @@ export default function VideoRecorder({
   }
 
   return (
-    <Card className="rounded-2xl">
+    <Card>
       <CardHeader>
         <CardTitle>Video Recorder</CardTitle>
         <CardDescription>
@@ -330,7 +340,7 @@ export default function VideoRecorder({
 
       <CardContent className="space-y-5">
         {!hidePreview && (
-          <div className="overflow-hidden rounded-2xl border bg-black">
+          <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-black">
             {previewUrl && recordingState === "stopped" ? (
               <video
                 src={previewUrl}
@@ -370,7 +380,7 @@ export default function VideoRecorder({
         </div>
 
         {errorMessage ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          <div className="rounded-md border border-[#EF4444]/30 bg-[#FEE2E2] p-3 text-sm text-destructive">
             {errorMessage}
           </div>
         ) : null}
@@ -419,10 +429,12 @@ export default function VideoRecorder({
           </Button>
         </div>
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-[#9CA3AF]">
           Maximum duration: {maxDuration} seconds. Your recording preview appears after stopping.
         </p>
       </CardContent>
     </Card>
   )
-}
+})
+
+export default VideoRecorder

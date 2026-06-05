@@ -64,9 +64,23 @@ export default function ExamInstructions({ exam, onStartExam }) {
 
   const canStartExam = permissionState === "granted"
 
+  const totalSeconds = (exam?.questions || exam?.form?.questions || []).reduce((total, q) => {
+    const time = Number(q.section_time_seconds) || Number(q.config?.section_time_seconds) || 0
+    return total + time
+  }, 0)
+
+  let durationText = "Not specified"
+  if (exam?.overall_timer) {
+    durationText = `${exam.overall_timer} minutes`
+  } else if (totalSeconds > 0) {
+    const m = Math.floor(totalSeconds / 60)
+    const s = totalSeconds % 60
+    durationText = m > 0 && s > 0 ? `${m}m ${s}s` : m > 0 ? `${m}m` : `${s}s`
+  }
+
   return (
     <div className="mx-auto max-w-4xl">
-      <Card className="rounded-2xl">
+      <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
             {exam?.title || "Assessment"}
@@ -80,10 +94,10 @@ export default function ExamInstructions({ exam, onStartExam }) {
           {/* Instructions Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Exam Instructions</h3>
-            <div className="rounded-lg border bg-card p-4 space-y-3 text-sm">
+            <div className="rounded-lg border border-[#E5E7EB] bg-white p-4 space-y-3 text-sm">
               <p>
                 <strong>Duration:</strong>{" "}
-                {exam?.overall_timer ? `${exam.overall_timer} minutes` : "Not specified"}
+                {durationText}
               </p>
 
               <div>
@@ -93,7 +107,7 @@ export default function ExamInstructions({ exam, onStartExam }) {
 
               <div className="space-y-2">
                 <strong>Important Guidelines:</strong>
-                <ul className="space-y-2 ml-4 list-disc text-muted-foreground">
+                <ul className="space-y-2 ml-4 list-disc text-[#374151]">
                   <li>
                     Answer each question completely. All questions are mandatory.
                   </li>
@@ -129,9 +143,9 @@ export default function ExamInstructions({ exam, onStartExam }) {
             <h3 className="text-lg font-semibold">Device Requirements</h3>
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center justify-between rounded-md border border-[#E5E7EB] p-4">
                 <div className="flex items-center gap-3">
-                  <Camera className="h-5 w-5 text-muted-foreground" />
+                  <Camera className="h-5 w-5 text-[#374151]" />
                   <span className="font-medium">Camera Access</span>
                 </div>
                 <Badge
@@ -154,9 +168,9 @@ export default function ExamInstructions({ exam, onStartExam }) {
                 </Badge>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center justify-between rounded-md border border-[#E5E7EB] p-4">
                 <div className="flex items-center gap-3">
-                  <Mic className="h-5 w-5 text-muted-foreground" />
+                  <Mic className="h-5 w-5 text-[#374151]" />
                   <span className="font-medium">Microphone Access</span>
                 </div>
                 <Badge
@@ -179,9 +193,9 @@ export default function ExamInstructions({ exam, onStartExam }) {
                 </Badge>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="flex items-center justify-between rounded-md border border-[#E5E7EB] p-4">
                 <div className="flex items-center gap-3">
-                  <Monitor className="h-5 w-5 text-muted-foreground" />
+                  <Monitor className="h-5 w-5 text-[#374151]" />
                   <span className="font-medium">Browser Support</span>
                 </div>
                 <Badge variant="default" className="flex items-center gap-1">

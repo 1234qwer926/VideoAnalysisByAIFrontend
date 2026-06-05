@@ -112,7 +112,7 @@ export default function ResultsList() {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-4 rounded-2xl border bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <section className="flex flex-col gap-4 rounded-lg border border-[#E5E7EB] bg-white p-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           {isFiltered && (
             <div className="mb-3">
@@ -144,7 +144,7 @@ export default function ResultsList() {
         </Button>
       </section>
 
-      <Card className="rounded-2xl">
+      <Card>
         <CardHeader>
           <CardTitle>Submission Results</CardTitle>
           <CardDescription>
@@ -180,11 +180,11 @@ export default function ResultsList() {
           {isLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 6 }).map((_, index) => (
-                <Skeleton key={index} className="h-14 w-full rounded-xl" />
+                <Skeleton key={index} className="h-14 w-full rounded-lg" />
               ))}
             </div>
           ) : filteredResults.length > 0 ? (
-            <div className="overflow-x-auto rounded-xl border">
+            <div className="overflow-x-auto rounded-lg border border-[#E5E7EB]">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -249,7 +249,7 @@ export default function ResultsList() {
               </Table>
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed py-14 text-center">
+            <div className="rounded-lg border border-[#E5E7EB] border-dashed py-14 text-center">
               <p className="text-sm text-muted-foreground">
                 No results matched the current filters.
               </p>
