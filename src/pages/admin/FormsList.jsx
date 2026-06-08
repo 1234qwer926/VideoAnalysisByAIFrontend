@@ -101,7 +101,7 @@ export default function FormsList() {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-col gap-4 rounded-lg border border-[#E5E7EB] bg-white p-6 lg:flex-row lg:items-center lg:justify-between">
+      <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Forms</h1>
           <p className="mt-1 text-sm text-muted-foreground">

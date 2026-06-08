@@ -3,6 +3,9 @@ import { Link } from "react-router-dom"
 import {
   ArrowRight,
   ClipboardCheck,
+  ClipboardList,
+  Clock,
+  Eye,
   RefreshCw,
   Trophy,
 } from "lucide-react"
@@ -11,6 +14,7 @@ import { toast } from "sonner"
 import { api } from "@/api/client"
 
 import { Button } from "@/components/ui/button"
+import { StatCard } from "@/components/ui/stat-card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -21,6 +25,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PageHeader } from "@/components/layout/page-header"
 
 function getStatusVariant(status) {
   const normalized = (status || "").toLowerCase()
@@ -100,43 +105,66 @@ export default function CandidateDashboard() {
   }, [assignments.length, stats.completedAssignments])
 
   return (
-    <div className="space-y-6">
-      <section className="flex flex-col gap-4 rounded-lg border border-[#E5E7EB] bg-white p-6 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Candidate Dashboard
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            View assigned assessments, continue active exams, and check your results.
-          </p>
-        </div>
+    <div className="space-y-8">
+      <PageHeader
+        title="Candidate Dashboard"
+        description="View assigned assessments, continue active exams, and check your results."
+        actions={
+          <Button
+            variant="outline"
+            onClick={() => fetchDashboardData(false)}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        }
+      />
 
-        <Button
-          variant="outline"
-          onClick={() => fetchDashboardData(false)}
-          disabled={isRefreshing}
-        >
-          <RefreshCw
-            className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </Button>
+      <section className="rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-background border border-primary/20 p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">Welcome back!</h2>
+            <p className="text-muted-foreground">
+              You have {stats.activeAssignments} active assignment{stats.activeAssignments !== 1 ? 's' : ''} to complete.
+            </p>
+          </div>
+          {stats.activeAssignments > 0 && (
+            <Button asChild>
+              <Link to="/candidate/assignments">
+                <ClipboardCheck className="mr-2 h-4 w-4" />
+                View Assignments
+              </Link>
+            </Button>
+          )}
+        </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          { label: "Assignments", value: stats.totalAssignments },
-          { label: "Active", value: stats.activeAssignments },
-          { label: "Completed", value: stats.completedAssignments },
-          { label: "Results", value: stats.availableResults },
-        ].map((item) => (
-          <Card key={item.label}>
-            <CardContent className="p-6">
-              <p className="text-sm text-muted-foreground">{item.label}</p>
-              <p className="mt-2 text-2xl font-semibold">{item.value}</p>
-            </CardContent>
-          </Card>
-        ))}
+        <StatCard
+          title="Assignments"
+          value={stats.totalAssignments}
+          description="Total assessments"
+          icon={ClipboardList}
+        />
+        <StatCard
+          title="Active"
+          value={stats.activeAssignments}
+          description="Pending completion"
+          icon={Clock}
+        />
+        <StatCard
+          title="Completed"
+          value={stats.completedAssignments}
+          description="Finished assessments"
+          icon={Trophy}
+        />
+        <StatCard
+          title="Results"
+          value={stats.availableResults}
+          description="Available for review"
+          icon={Eye}
+        />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">

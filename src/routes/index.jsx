@@ -19,6 +19,8 @@ import ResultDetail from "@/pages/admin/ResultDetail"
 
 import CandidateLogin from "@/pages/candidate/CandidateLogin"
 import CandidateDashboard from "@/pages/candidate/CandidateDashboard"
+import CandidateAssignments from "@/pages/candidate/CandidateAssignments"
+import CandidateResults from "@/pages/candidate/CandidateResults"
 import ExamPage from "@/pages/candidate/ExamPage"
 import ResultPage from "@/pages/candidate/ResultPage"
 
@@ -119,6 +121,14 @@ export default function AppRoutes() {
         {
           path: "dashboard",
           element: <CandidateDashboard />,
+        },
+        {
+          path: "assignments",
+          element: <CandidateAssignments />,
+        },
+        {
+          path: "results",
+          element: <CandidateResults />,
         },
         {
           path: "exam/:token",

@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Card,
   CardContent,
   CardDescription,
@@ -42,12 +49,28 @@ export default function ResultsList() {
   const isFiltered = !!(assignmentId || userId || userEmail)
 
   const [results, setResults] = useState([])
+  const [assignments, setAssignments] = useState([])
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState("all")
+  const [hasLoaded, setHasLoaded] = useState(false)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const fetchResults = async (showLoader = true) => {
+  // Fetch assignments on mount (lightweight call)
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        const response = await api.get("/api/admin/assignments")
+        setAssignments(Array.isArray(response.data) ? response.data : [])
+      } catch (error) {
+        console.error("Failed to load assignments", error)
+      }
+    }
+    fetchAssignments()
+  }, [])
+
+  const fetchResults = async (assignmentIdParam, showLoader = true) => {
     try {
       if (showLoader) {
         setIsLoading(true)
@@ -55,8 +78,13 @@ export default function ResultsList() {
         setIsRefreshing(true)
       }
 
-      const response = await api.get("/api/admin/results")
+      const url = assignmentIdParam && assignmentIdParam !== "all"
+        ? `/api/admin/results?assignment_id=${assignmentIdParam}`
+        : "/api/admin/results"
+
+      const response = await api.get(url)
       setResults(Array.isArray(response.data) ? response.data : [])
+      setHasLoaded(true)
     } catch (error) {
       const message = error?.response?.data?.detail || "Failed to load results"
       toast.error(typeof message === "string" ? message : "Failed to load results")
@@ -66,9 +94,13 @@ export default function ResultsList() {
     }
   }
 
+  // Load results on mount if assignmentId is in URL params
   useEffect(() => {
-    fetchResults()
-  }, [])
+    if (assignmentId) {
+      setSelectedAssignmentId(assignmentId)
+      fetchResults(assignmentId, true)
+    }
+  }, [assignmentId])
 
   const filteredResults = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -134,7 +166,7 @@ export default function ResultsList() {
 
         <Button
           variant="outline"
-          onClick={() => fetchResults(false)}
+          onClick={() => fetchResults(selectedAssignmentId, false)}
           disabled={isRefreshing}
         >
           <RefreshCw
@@ -153,6 +185,33 @@ export default function ResultsList() {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+            <div className="flex-1 space-y-2">
+              <label className="text-sm font-medium">Assignment</label>
+              <Select value={selectedAssignmentId} onValueChange={setSelectedAssignmentId}>
+                <SelectTrigger className="w-full sm:w-[280px]">
+                  <SelectValue placeholder="Select assignment..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Assignments</SelectItem>
+                  {assignments.map((assignment) => (
+                    <SelectItem key={assignment.id} value={String(assignment.id)}>
+                      {assignment.title || `Assignment #${assignment.id}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              onClick={() => fetchResults(selectedAssignmentId, false)}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+              Load Results
+            </Button>
+          </div>
+
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative w-full max-w-md">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -176,6 +235,12 @@ export default function ResultsList() {
               <option value="evaluated">Evaluated</option>
             </select>
           </div>
+
+          {!hasLoaded && !isLoading && (
+            <div className="text-center py-12 text-muted-foreground">
+              Select an assignment and click "Load Results" to view submissions
+            </div>
+          )}
 
           {isLoading ? (
             <div className="space-y-3">
@@ -248,13 +313,13 @@ export default function ResultsList() {
                 </TableBody>
               </Table>
             </div>
-          ) : (
+          ) : hasLoaded ? (
             <div className="rounded-lg border border-[#E5E7EB] border-dashed py-14 text-center">
               <p className="text-sm text-muted-foreground">
                 No results matched the current filters.
               </p>
             </div>
-          )}
+          ) : null}
         </CardContent>
       </Card>
     </div>

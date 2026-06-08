@@ -24,6 +24,7 @@ function clearStoredAuth() {
 export const api = axios.create({
   baseURL: BASE_URL,
   timeout: 15000,
+  withCredentials: true,  // Allow cookies to be sent cross-origin (required for httpOnly cookie auth)
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

@@ -13,9 +13,12 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { Sidebar } from "@/components/layout/sidebar"
 
 const NAV_ITEMS = [
   {
@@ -51,7 +54,7 @@ function getPageTitle(pathname) {
   return "Admin"
 }
 
-function SidebarContent({ onNavigate }) {
+function MobileSidebarContent({ onNavigate }) {
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -102,7 +105,10 @@ function SidebarContent({ onNavigate }) {
         })}
       </nav>
 
-      <div className="p-3">
+      <div className="p-3 space-y-2">
+        <div className="flex items-center justify-center py-2">
+          <ThemeToggle />
+        </div>
         <Button
           variant="outline"
           className="w-full justify-start"
@@ -118,22 +124,45 @@ function SidebarContent({ onNavigate }) {
 
 export default function AdminLayout() {
   const location = useLocation()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   const pageTitle = useMemo(
     () => getPageTitle(location.pathname),
     [location.pathname]
   )
 
+  const handleLogout = () => {
+    localStorage.removeItem("admin_token")
+    localStorage.removeItem("auth_token")
+    localStorage.removeItem("user_role")
+
+    toast.success("Logged out successfully")
+    navigate("/admin/login", { replace: true })
+  }
+
   return (
     <div className="min-h-screen bg-muted/20">
       <div className="flex min-h-screen">
-        <aside className="hidden w-[200px] bg-gradient-to-b from-[#1F2937] to-[#111827] text-white lg:flex">
-          <SidebarContent />
+        {/* Desktop Sidebar using new Sidebar component */}
+        <aside className="hidden lg:block">
+          <Sidebar
+            items={NAV_ITEMS}
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            user={{ email: "admin@example.com" }}
+            onLogout={handleLogout}
+          />
         </aside>
 
-        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-[64px] items-center justify-between border-b border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1)] px-4 lg:px-6">
+        <div
+          className={cn(
+            "flex min-h-screen min-w-0 flex-1 flex-col transition-all duration-300",
+            sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
+          )}
+        >
+          <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-4 lg:px-6 shadow-sm">
             <div className="flex items-center gap-3">
               <Sheet open={open} onOpenChange={setOpen}>
                 <SheetTrigger asChild className="lg:hidden">
@@ -141,7 +170,6 @@ export default function AdminLayout() {
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-
                 <SheetContent side="left" className="w-[200px] p-0 bg-gradient-to-b from-[#1F2937] to-[#111827] text-white">
                   <div className="flex items-center justify-between border-b border-gray-700 px-4 py-4">
                     <p className="text-sm font-semibold">Navigation</p>
@@ -155,9 +183,11 @@ export default function AdminLayout() {
                     </Button>
                   </div>
 
-                  <SidebarContent onNavigate={() => setOpen(false)} />
+                  <MobileSidebarContent onNavigate={() => setOpen(false)} />
                 </SheetContent>
               </Sheet>
+
+              <ThemeToggle />
 
               <div>
                 <h1 className="text-lg font-semibold tracking-tight">
@@ -180,7 +210,7 @@ export default function AdminLayout() {
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 p-4 lg:p-6">
+          <main className="min-w-0 flex-1 p-4 lg:p-6 bg-background">
             <div className="mx-auto w-full max-w-7xl">
               <Outlet />
             </div>

@@ -592,7 +592,7 @@ export default function AssignmentList() {
                                 </Link>
 
                                 <Link
-                                  to="/admin/results"
+                                  to={`/admin/results?assignmentId=${assignment.id}`}
                                   style={menuItemStyle}
                                   onMouseEnter={(e) =>
                                     (e.currentTarget.style.background = "#f9fafb")

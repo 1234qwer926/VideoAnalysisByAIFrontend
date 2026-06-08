@@ -21,24 +21,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { PageHeader } from "@/components/layout/page-header"
 import { Skeleton } from "@/components/ui/skeleton"
-
-function StatCard({ title, value, icon: Icon, description }) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between p-6">
-        <div>
-          <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="mt-1 text-2xl font-semibold">{value}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
-        </div>
-        <div className="rounded-lg bg-[#F3F4F6] p-3 text-[#9CA3AF]">
-          <Icon className="h-5 w-5" />
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
+import { StatCard } from "@/components/ui/stat-card"
 
 export default function AdminDashboard() {
   const [forms, setForms] = useState([])
@@ -126,49 +111,40 @@ export default function AdminDashboard() {
   const recentResults = useMemo(() => results.slice(0, 5), [results])
 
   return (
-    <div className="space-y-6">
-      <section className="flex flex-col gap-4 rounded-lg border border-[#E5E7EB] bg-white p-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Admin Dashboard
-          </h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            Monitor forms, assignments, and evaluation activity from one place.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <Button
-            variant="outline"
-            onClick={() => fetchDashboardData(false)}
-            disabled={isRefreshing}
-          >
-            <RefreshCw
-              className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button>
-
-          <Button asChild variant="outline">
-            <Link to="/admin/forms/create">
-              <Plus className="mr-2 h-4 w-4" />
-              New Form
-            </Link>
-          </Button>
-
-          <Button asChild>
-            <Link to="/admin/assignments/create">
-              <Plus className="mr-2 h-4 w-4" />
-              New Assignment
-            </Link>
-          </Button>
-        </div>
-      </section>
+    <div className="space-y-8">
+      <PageHeader
+        title="Admin Dashboard"
+        description="Monitor forms, assignments, and evaluation activity from one place."
+        actions={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => fetchDashboardData(false)}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/admin/forms/create">
+                <Plus className="mr-2 h-4 w-4" />
+                New Form
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/admin/assignments/create">
+                <Plus className="mr-2 h-4 w-4" />
+                New Assignment
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       {isLoading ? (
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} className="h-32 w-full rounded-lg" />
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <Skeleton key={index} className="h-32 w-full rounded-xl" />
           ))}
         </section>
       ) : (
